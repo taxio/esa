@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/srvc/fail/v4"
-	"github.com/taxio/esa/api"
 )
 
-func NewListSubCmd(client *api.Client) *cobra.Command {
+func NewListSubCmd(client *Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "list posts",

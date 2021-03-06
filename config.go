@@ -14,6 +14,9 @@ const (
 )
 
 type Config struct {
+	AppName string
+	Version string
+
 	AccessToken  string `envconfig:"esa_access_token" required:"true"`
 	TeamName     string `envconfig:"esa_team_name" required:"true"`
 	CacheDirPath string
@@ -28,6 +31,8 @@ func LoadConfig() (*Config, error) {
 		return nil, fail.Wrap(err)
 	}
 
+	cfg.AppName = AppName
+	cfg.Version = Version
 	cacheHomeDir, err := os.UserCacheDir()
 	if err != nil {
 		return nil, fail.Wrap(err)

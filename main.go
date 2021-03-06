@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/taxio/esa/api"
 	"log"
 	"os"
 )
@@ -15,12 +14,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client, err := api.NewClient(cfg.AccessToken, cfg.TeamName)
+	client, err := NewClient(cfg.AccessToken, cfg.TeamName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rootCmd := NewRootCmd(client)
+	rootCmd := NewRootCmd(cfg, client)
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		log.Fatal(err)
 	}
