@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/spf13/afero"
 	"log"
 	"os"
 )
@@ -9,7 +10,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	cfg, err := LoadConfig()
+	cfg, err := LoadConfig(afero.NewOsFs())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,8 +6,8 @@ import (
 
 func NewRootCmd(cfg *Config, client *Client) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "esa",
-		Short: "A cli tool for esa",
+		Use:     "esa",
+		Short:   "A cli tool for esa",
 		Version: cfg.Version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
@@ -16,6 +16,8 @@ func NewRootCmd(cfg *Config, client *Client) *cobra.Command {
 
 	subCmds := []*cobra.Command{
 		NewListSubCmd(client),
+		NewEditSubCmd(cfg, client),
+		NewConfigSubCmd(cfg),
 	}
 	cmd.AddCommand(subCmds...)
 
