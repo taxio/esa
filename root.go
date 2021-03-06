@@ -1,18 +1,21 @@
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"github.com/taxio/esa/api"
+)
 
-func NewRootCmd() *cobra.Command {
+func NewRootCmd(client *api.Client) *cobra.Command {
 	cmd := &cobra.Command{
-		Short: "esa",
-		Long:  "A cli tool for esa",
+		Use:   "esa",
+		Short: "A cli tool for esa",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
 	}
 
 	subCmds := []*cobra.Command{
-		NewListSubCmd(),
+		NewListSubCmd(client),
 	}
 	cmd.AddCommand(subCmds...)
 
