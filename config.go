@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"text/template"
@@ -12,6 +11,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/srvc/fail/v4"
+	"github.com/taxio/esa/log"
 )
 
 //go:embed config.tmpl
@@ -117,7 +117,6 @@ func (c *Config) initIfNotExists() error {
 	c.Editor = "vim"
 	c.SelectCmd = "peco"
 
-	fmt.Println(string(configTmpl))
 	t, err := template.New(fmt.Sprintf("%s.%s", ConfigName, ConfigType)).Parse(string(configTmpl))
 	if err != nil {
 		return fail.Wrap(err)
