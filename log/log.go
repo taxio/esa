@@ -7,7 +7,7 @@ import (
 
 type dummy struct{}
 
-func (d *dummy) Write(p []byte) (n int, err error) {
+func (d *dummy) Write(_ []byte) (n int, err error) {
 	return 0, nil
 }
 

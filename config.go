@@ -109,7 +109,7 @@ func (c *Config) initIfNotExists() error {
 	if err != nil {
 		return fail.Wrap(err)
 	}
-	defer f.Close()
+	defer mustClose(f)
 
 	// set default value
 	c.AccessToken = ""
