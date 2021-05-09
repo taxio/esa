@@ -1,17 +1,18 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/srvc/fail/v4"
 	"github.com/taxio/esa/log"
-	"os"
 )
 
-func NewRootCmd(cfg *Config, client *Client) *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "esa",
+		Use:     AppName,
 		Short:   "A cli tool for esa",
-		Version: cfg.Version,
+		Version: Version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
@@ -31,9 +32,8 @@ func NewRootCmd(cfg *Config, client *Client) *cobra.Command {
 	cmd.PersistentFlags().Bool("verbose", false, "print log for developers")
 
 	subCmds := []*cobra.Command{
-		NewListSubCmd(client),
-		NewEditSubCmd(cfg, client),
-		NewConfigSubCmd(cfg),
+		NewConfigSubCmd(),
+		NewListSubCmd(),
 	}
 	cmd.AddCommand(subCmds...)
 
