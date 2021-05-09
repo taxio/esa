@@ -36,8 +36,8 @@ type Config struct {
 
 	AccessToken string
 	TeamName    string
-	Editor      string
-	SelectCmd   string
+	Editor      string // The command used to rewrite the configuration.
+	SelectCmd   string // The command to grep the results of the `list` command.
 }
 
 func LoadConfig(fs afero.Fs) (*Config, error) {
