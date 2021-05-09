@@ -18,9 +18,6 @@ import (
 var configTmpl []byte
 
 const (
-	AppName = "esa"
-	Version = "0.0.1"
-
 	ConfigName = "config"
 	ConfigType = "toml"
 )
@@ -34,13 +31,16 @@ type Config struct {
 	ConfigDirPath string
 	CacheDirPath  string
 
-	AccessToken string
-	TeamName    string
-	Editor      string // The command used to rewrite the configuration.
-	SelectCmd   string // The command to grep the results of the `list` command.
+	AccessToken string `mapstructure:"access_token"`
+	TeamName    string `mapstructure:"team_name"`
+	// The command used to rewrite the configuration.
+	Editor      string `mapstructure:"editor"`
+	// The command to grep the results of the `list` command.
+	SelectCmd   string `mapstructure:"select_cmd"`
 }
 
-func LoadConfig(fs afero.Fs) (*Config, error) {
+func LoadConfig(fs afero.Fs) (Config, error) {
+	log.Println("Load Config...")
 	var cfg Config
 
 	cfg.af = &afero.Afero{Fs: fs}
@@ -49,27 +49,28 @@ func LoadConfig(fs afero.Fs) (*Config, error) {
 
 	cacheDirPath, err := getCacheDirPath()
 	if err != nil {
-		return nil, fail.Wrap(err)
+		return cfg, fail.Wrap(err)
 	}
 	cfg.CacheDirPath = cacheDirPath
 
 	configDirPath, err := getConfigDirPath()
 	if err != nil {
-		return nil, fail.Wrap(err)
+		return cfg, fail.Wrap(err)
 	}
 	cfg.ConfigDirPath = configDirPath
 
 	// check config file existence
 	cfg.Path = path.Join(configDirPath, fmt.Sprintf("%s.%s", ConfigName, ConfigType))
 	if err := cfg.initIfNotExists(); err != nil {
-		return nil, fail.Wrap(err)
+		return cfg, fail.Wrap(err)
 	}
 
 	if err := cfg.Reload(); err != nil {
-		return nil, fail.Wrap(err)
+		return cfg, fail.Wrap(err)
 	}
+	log.Println("Configured.")
 
-	return &cfg, nil
+	return cfg, nil
 }
 
 func (c *Config) initIfNotExists() error {
@@ -191,6 +192,5 @@ func (c *Config) Reload() error {
 	if err := viper.Unmarshal(c); err != nil {
 		return fail.Wrap(err)
 	}
-	log.Printf("Load Config: %#v\n", c)
 	return nil
 }

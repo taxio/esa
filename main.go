@@ -2,26 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/spf13/afero"
-	"log"
 	"os"
+
+	"github.com/taxio/esa/log"
 )
 
 func main() {
-	ctx := context.Background()
-
-	cfg, err := LoadConfig(afero.NewOsFs())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client, err := NewClient(cfg.AccessToken, cfg.TeamName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	rootCmd := NewRootCmd(cfg, client)
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
+	rootCmd := NewRootCmd()
+	if err := rootCmd.ExecuteContext(context.Background()); err != nil {
 		log.Fatal(err)
 	}
 	os.Exit(0)
