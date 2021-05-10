@@ -34,6 +34,7 @@ func NewRootCmd() *cobra.Command {
 	subCmds := []*cobra.Command{
 		NewConfigSubCmd(),
 		NewListSubCmd(),
+		NewEditSubCmd(),
 	}
 	cmd.AddCommand(subCmds...)
 
