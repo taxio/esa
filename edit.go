@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strconv"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/srvc/fail/v4"
 	"github.com/taxio/esa/log"
-	"path/filepath"
-	"strconv"
 )
 
 func NewEditSubCmd() *cobra.Command {
@@ -36,14 +37,13 @@ func NewEditSubCmd() *cobra.Command {
 			// Get Post ID
 			var postId int
 			if len(args) == 0 {
-				// 既存の POST からインクリメンタルに探す
+				// Search for post incrementally.
 				pId, err := searchPostId()
 				if err != nil {
 					return fail.Wrap(err)
 				}
 				postId = pId
 			} else {
-				// 指定された番号の POST を見つける
 				pId, err := strconv.Atoi(args[0])
 				if err != nil {
 					return fail.Wrap(err)
@@ -93,13 +93,12 @@ func searchPostId() (int, error) {
 
 var ErrCacheAlreadyExists = errors.New("cache already exists")
 
-// Post のデータを一時的なファイルに書き込んでそのパスを返す
 func savePostTemporary(fs afero.Fs, cacheDir string, post *Post) (string, error) {
 	af := afero.Afero{Fs: fs}
 	// CacheDir/posts/:post_number
 	cachePath := filepath.Join(cacheDir, "posts", fmt.Sprintf("%d", post.Number))
 
-	// キャッシュディレクトリの存在チェック
+	// Check for the existence of a chache directory.
 	ok, err := af.DirExists(cachePath)
 	if err != nil {
 		return "", fail.Wrap(err)
@@ -108,12 +107,12 @@ func savePostTemporary(fs afero.Fs, cacheDir string, post *Post) (string, error)
 		return "", fail.Wrap(ErrCacheAlreadyExists, fail.WithMessage(cachePath))
 	}
 
-	// キャッシュディレクトリ作る
+	// Create a cache directory.
 	if err := af.MkdirAll(cachePath, 0755); err != nil {
 		return "", fail.Wrap(err)
 	}
 
-	// 編集前の Meta 情報.json
+	// Save meta of post
 	jsonBytes, err := json.Marshal(post)
 	if err != nil {
 		return "", fail.Wrap(err)
@@ -122,7 +121,7 @@ func savePostTemporary(fs afero.Fs, cacheDir string, post *Post) (string, error)
 		return "", fail.Wrap(err)
 	}
 
-	// 編集中の Body.md
+	// Save body markdown data
 	if err := af.WriteFile(filepath.Join(cachePath, "body.md"), []byte(post.OriginalRevision.BodyMd), 0644); err != nil {
 		return "", fail.Wrap(err)
 	}
