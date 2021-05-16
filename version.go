@@ -2,5 +2,5 @@ package main
 
 const (
 	AppName = "esa"
-	Version = "0.1.0"
+	Version = "0.1.1"
 )
