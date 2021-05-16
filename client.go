@@ -56,43 +56,59 @@ type GetPostsResponse struct {
 
 const MaxPostsPerPage = 100
 
-func (c *Client) GetPosts(ctx context.Context, page, perPage int) (*GetPostsResponse, error) {
-	var res GetPostsResponse
+func (c *Client) GetPosts(ctx context.Context, max int, sortKey SortKey) ([]*Post, error) {
+	log.Printf("GetPosts. max: %d, sortKey: %s\n", max, sortKey)
+	var posts []*Post
 
-	err := c.client.Get(
-		ctx,
-		hx.Path("posts"),
-		hx.Query("page", fmt.Sprint(page)),
-		hx.Query("per_page", fmt.Sprint(perPage)),
-		hx.WhenSuccess(hx.AsJSON(&res)),
-		hx.WhenFailure(hx.AsError()),
-	)
-	if err != nil {
-		return nil, fail.Wrap(err)
-	}
+	remain := max
+	page := 0
+	for remain > 0 {
+		perPage := minInt(remain, MaxPostsPerPage)
+		remain = remain - perPage
 
-	return &res, nil
-}
-
-func (c *Client) GetAllPosts(ctx context.Context) (int, []*GetPostsResponsePost, error) {
-	var posts []*GetPostsResponsePost
-	var totalCount int
-
-	page := 1
-	for {
-		res, err := c.GetPosts(ctx, page, MaxPostsPerPage)
+		log.Printf("Get post. page: %d, per_page: %d, sort: %s\n", page, perPage, sortKey)
+		var res GetPostsResponse
+		err := c.client.Get(
+			ctx,
+			hx.Path("posts"),
+			hx.Query("page", fmt.Sprint(page)),
+			hx.Query("per_page", fmt.Sprint(perPage)),
+			hx.Query("sort", sortKey.String()),
+			hx.WhenSuccess(hx.AsJSON(&res)),
+			hx.WhenFailure(hx.AsError()),
+		)
 		if err != nil {
-			return 0, nil, fail.Wrap(err)
+			return nil, fail.Wrap(err)
 		}
-		posts = append(posts, res.Posts...)
+
+		for _, p := range res.Posts {
+			posts = append(posts, &Post{
+				Number:    p.Number,
+				Name:      p.Name,
+				FullName:  p.FullName,
+				BodyMd:    p.BodyMd,
+				CreatedAt: p.CreatedAt,
+				UpdatedAt: p.UpdatedAt,
+				Url:       p.Url,
+				Tags:      p.Tags,
+			})
+		}
+
 		if res.NextPage == 0 {
-			totalCount = res.TotalCount
+			log.Println("there is no next page")
 			break
 		}
-		page++
+		page = res.NextPage
 	}
 
-	return totalCount, posts, nil
+	return posts, nil
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 type UserInfo struct {
