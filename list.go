@@ -70,11 +70,24 @@ func NewListSubCmd() *cobra.Command {
 			if err != nil {
 				return fail.Wrap(err)
 			}
-
-			posts, err := client.GetPosts(cmd.Context(), count, sortKey)
+			onlyTemplates, err := cmd.Flags().GetBool("only-templates")
 			if err != nil {
 				return fail.Wrap(err)
 			}
+
+			var posts []*Post
+			if onlyTemplates {
+				posts, err = client.GetTemplatePosts(cmd.Context(), count, sortKey)
+				if err != nil {
+					return fail.Wrap(err)
+				}
+			} else {
+				posts, err = client.GetPosts(cmd.Context(), count, sortKey)
+				if err != nil {
+					return fail.Wrap(err)
+				}
+			}
+
 			for _, post := range posts {
 				fmt.Printf("%s: %s\n", post.FullName, post.Url)
 			}
@@ -84,6 +97,7 @@ func NewListSubCmd() *cobra.Command {
 
 	cmd.Flags().IntP("count", "c", 20, "Only print the number of posts")
 	cmd.Flags().String("sort", "updated", "Sort key [updated:created:number:stars:watches:comments:best_match]")
+	cmd.Flags().Bool("only-templates", false, "Show only template posts")
 
 	return cmd
 }

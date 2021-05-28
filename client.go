@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"time"
+
 	"github.com/izumin5210/hx"
 	"github.com/srvc/fail/v4"
 	"github.com/taxio/esa/log"
-	"net/url"
-	"time"
 )
 
 const (
@@ -166,6 +167,55 @@ func (c *Client) GetPost(ctx context.Context, postId int) (*Post, error) {
 	}
 
 	return &post, nil
+}
+
+func (c *Client) GetTemplatePosts(ctx context.Context, max int, sortKey SortKey) ([]*Post, error) {
+	log.Printf("GetTemplatePosts. max: %d, sortKey: %s\n", max, sortKey)
+	var posts []*Post
+
+	remain := max
+	page := 0
+	for remain > 0 {
+		perPage := minInt(remain, MaxPostsPerPage)
+		remain = remain - perPage
+
+		log.Printf("Get post. page: %d, per_page: %d, sort: %s\n", page, perPage, sortKey)
+		var res GetPostsResponse
+		err := c.client.Get(
+			ctx,
+			hx.Path("posts"),
+			hx.Query("page", fmt.Sprint(page)),
+			hx.Query("per_page", fmt.Sprint(perPage)),
+			hx.Query("sort", sortKey.String()),
+			hx.Query("q", "category:Templates"),
+			hx.WhenSuccess(hx.AsJSON(&res)),
+			hx.WhenFailure(hx.AsError()),
+		)
+		if err != nil {
+			return nil, fail.Wrap(err)
+		}
+
+		for _, p := range res.Posts {
+			posts = append(posts, &Post{
+				Number:    p.Number,
+				Name:      p.Name,
+				FullName:  p.FullName,
+				BodyMd:    p.BodyMd,
+				CreatedAt: p.CreatedAt,
+				UpdatedAt: p.UpdatedAt,
+				Url:       p.Url,
+				Tags:      p.Tags,
+			})
+		}
+
+		if res.NextPage == 0 {
+			log.Println("there is no next page")
+			break
+		}
+		page = res.NextPage
+	}
+
+	return posts, nil
 }
 
 type PatchPostRequestOriginalRevision struct {
