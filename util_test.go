@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func Test_parsePostIdFromArg(t *testing.T) {
+func Test_ParsePostIdFromArg(t *testing.T) {
 	type args struct {
 		arg string
 	}
@@ -55,13 +55,13 @@ func Test_parsePostIdFromArg(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parsePostIdFromArg(tt.args.arg)
+			got, err := ParsePostIdFromArg(tt.args.arg)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("parsePostIdFromArg() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParsePostIdFromArg() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("parsePostIdFromArg() got = %v, want %v", got, tt.want)
+				t.Errorf("ParsePostIdFromArg() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
