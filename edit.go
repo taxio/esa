@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -44,7 +47,7 @@ func NewEditSubCmd() *cobra.Command {
 				}
 				postId = pId
 			} else {
-				pId, err := strconv.Atoi(args[0])
+				pId, err := parsePostIdFromArg(args[0])
 				if err != nil {
 					return fail.Wrap(err)
 				}
@@ -85,6 +88,34 @@ func NewEditSubCmd() *cobra.Command {
 	}
 
 	return cmd
+}
+
+var digitReg = regexp.MustCompile(`^-?\d+$`)
+var ErrInvalidPostIdFormat = errors.New("invalid post id format")
+
+func parsePostIdFromArg(arg string) (int, error) {
+	var pIdStr string
+	if digitReg.Match([]byte(arg)) {
+		pIdStr = arg
+	} else {
+		u, err := url.Parse(arg)
+		if err != nil {
+			return 0, fail.Wrap(err)
+		}
+		elms := strings.Split(u.Path, "/")
+		pIdStr = elms[len(elms)-1]
+	}
+
+	pId, err := strconv.Atoi(pIdStr)
+	if err != nil {
+		return 0, fail.Wrap(err)
+	}
+
+	if pId <= 0 {
+		return 0, fail.Wrap(ErrInvalidPostIdFormat)
+	}
+
+	return pId, nil
 }
 
 func searchPostId() (int, error) {
