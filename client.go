@@ -262,3 +262,57 @@ func (c *Client) UpdatePost(ctx context.Context, post *Post) error {
 
 	return nil
 }
+
+type NewPostRequest struct {
+	Post NewPostRequestPost `json:"post"`
+}
+
+type NewPostRequestPost struct {
+	Name           string   `json:"name,omitempty"`
+	BodyMd         string   `json:"body_md,omitempty"`
+	Tags           []string `json:"tags,omitempty"`
+	Category       string   `json:"category,omitempty"`
+	Wip            bool     `json:"wip,omitempty"`
+	Message        string   `json:"message,omitempty"`
+	User           string   `json:"user,omitempty"`
+	TemplatePostId int      `json:"template_post_id,omitempty"`
+}
+
+func (c *Client) CreatePostFromTemplate(ctx context.Context, templateId int) (*Post, error) {
+	req := NewPostRequest{
+		Post: NewPostRequestPost{
+			TemplatePostId: templateId,
+		},
+	}
+	var res GetPostResponse
+
+	err := c.client.Post(
+		ctx,
+		hx.Path("posts"),
+		hx.JSON(req),
+		hx.WhenSuccess(hx.AsJSON(&res)),
+		hx.WhenFailure(hx.AsError()),
+	)
+	if err != nil {
+		return nil, fail.Wrap(err)
+	}
+
+	post := Post{
+		Number:    res.Number,
+		Name:      res.Name,
+		FullName:  res.FullName,
+		BodyMd:    res.BodyMd,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
+		Url:       res.Url,
+		Tags:      res.Tags,
+		Category:  res.Category,
+		OriginalRevision: PostRevision{
+			BodyMd: res.BodyMd,
+			Number: res.Number,
+			User:   res.UpdatedBy.Name,
+		},
+	}
+
+	return &post, nil
+}
