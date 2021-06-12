@@ -17,16 +17,13 @@ func NewNewSubCmd() *cobra.Command {
 				return fail.New("Invalid arguments")
 			}
 
-			fs := afero.NewOsFs()
-			cfg, err := LoadConfig(fs)
-			if err != nil {
-				return fail.Wrap(err)
-			}
-			client, err := NewClient(cfg.AccessToken, cfg.TeamName)
-			if err != nil {
-				return fail.Wrap(err)
-			}
 			ctx := cmd.Context()
+			fs := afero.NewOsFs()
+			diApp, err := NewDiApp(ctx, fs)
+			if err != nil {
+				return fail.Wrap(err)
+			}
+			client := diApp.Client
 
 			template, err := cmd.Flags().GetString("template")
 			if err != nil {

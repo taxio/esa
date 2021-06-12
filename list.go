@@ -48,15 +48,13 @@ func NewListSubCmd() *cobra.Command {
 		Short: "list posts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Setup
+			ctx := cmd.Context()
 			fs := afero.NewOsFs()
-			cfg, err := LoadConfig(fs)
+			diApp, err := NewDiApp(ctx, fs)
 			if err != nil {
 				return fail.Wrap(err)
 			}
-			client, err := NewClient(cfg.AccessToken, cfg.TeamName)
-			if err != nil {
-				return fail.Wrap(err)
-			}
+			client := diApp.Client
 
 			count, err := cmd.Flags().GetInt("count")
 			if err != nil {

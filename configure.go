@@ -11,28 +11,19 @@ func NewConfigSubCmd() *cobra.Command {
 		Use:   "config",
 		Short: "configure esa tool",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := editConfigFile(afero.NewOsFs())
-			return fail.Wrap(err)
+			ctx := cmd.Context()
+			fs := afero.NewOsFs()
+			diApp, err := NewDiApp(ctx, fs)
+			if err != nil {
+				return fail.Wrap(err)
+			}
+
+			cfgManager := diApp.ConfigManager
+			if err := cfgManager.Edit(ctx); err != nil {
+				return fail.Wrap(err)
+			}
+			return nil
 		},
 	}
 	return cmd
-}
-
-func editConfigFile(fs afero.Fs) error {
-	// Load config
-	cfg, err := LoadConfig(fs)
-	if err != nil {
-		return fail.Wrap(err)
-	}
-
-	// open config by editor
-	if err := execEditor(cfg.Editor, cfg.Path); err != nil {
-		return fail.Wrap(err)
-	}
-
-	// reload config
-	if err := cfg.Reload(); err != nil {
-		return fail.Wrap(err)
-	}
-	return nil
 }
