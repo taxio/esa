@@ -44,12 +44,15 @@ func NewEditSubCmd() *cobra.Command {
 			}
 
 			err = postSrv.EditPost(ctx, postId)
-			if !errors.Is(err, ErrPostCacheAlreadyExists) && err != nil {
-				return fail.Wrap(err)
-			}
-			err = postSrv.EditPostFromCache(postId)
 			if err != nil {
-				return fail.Wrap(err)
+				if errors.Is(err, ErrPostCacheAlreadyExists) {
+					err = postSrv.EditPostFromCache(postId)
+					if err != nil {
+						return fail.Wrap(err)
+					}
+				} else {
+					return fail.Wrap(err)
+				}
 			}
 
 			return nil
