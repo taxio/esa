@@ -31,7 +31,7 @@ func newPostCachePath(cacheBaseDir string, postId int) *postCachePath {
 	}
 }
 
-func NewPostService(fs afero.Fs, client *Client, cacheBaseDir string, editor string) *PostService {
+func NewPostService(fs afero.Fs, client *Client, cacheBaseDir string, editor Editor) *PostService {
 	return &PostService{
 		af:           &afero.Afero{Fs: fs},
 		client:       client,
@@ -44,7 +44,7 @@ type PostService struct {
 	af           *afero.Afero
 	client       *Client
 	cacheBaseDir string
-	editor       string
+	editor       Editor
 }
 
 func (s *PostService) EditPost(ctx context.Context, postId int) error {
@@ -62,7 +62,7 @@ func (s *PostService) EditPost(ctx context.Context, postId int) error {
 	}
 
 	// open cache file by editor
-	if err := execEditor(s.editor, cachePath.Body); err != nil {
+	if err := s.editor.Exec(ctx, cachePath.Body); err != nil {
 		return fail.Wrap(err)
 	}
 

@@ -14,6 +14,7 @@ type DiApp struct {
 	Client        *Client
 	PostService   *PostService
 	ConfigManager *ConfigManager
+	Editor        Editor
 }
 
 func NewDiApp(ctx context.Context, fs afero.Fs) (*DiApp, error) {
@@ -26,24 +27,30 @@ func NewDiApp(ctx context.Context, fs afero.Fs) (*DiApp, error) {
 		return nil, fail.Wrap(err)
 	}
 
-	configManager := NewConfigManager(fs, configDirPath)
+	defaultEditor := os.Getenv("EDITOR")
+	if defaultEditor == "" {
+		defaultEditor = "vim"
+	}
+	configManager := NewConfigManager(fs, configDirPath, NewEditor(defaultEditor))
 	cfg, err := configManager.Load(ctx)
 	if err != nil {
 		return nil, fail.Wrap(err)
 	}
+	editor := NewEditor(cfg.Editor)
 
 	client, err := NewClient(cfg.AccessToken, cfg.TeamName)
 	if err != nil {
 		return nil, fail.Wrap(err)
 	}
 
-	postSrv := NewPostService(fs, client, cacheDirPath, cfg.Editor)
+	postSrv := NewPostService(fs, client, cacheDirPath, editor)
 
 	return &DiApp{
 		Config:        cfg,
 		Client:        client,
 		PostService:   postSrv,
 		ConfigManager: configManager,
+		Editor:        editor,
 	}, nil
 }
 

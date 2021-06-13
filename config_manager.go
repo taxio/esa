@@ -19,19 +19,15 @@ type ConfigManager struct {
 	af       *afero.Afero
 	dirPath  string
 	filePath string
-	editor   string
+	editor   Editor
 }
 
-func NewConfigManager(fs afero.Fs, dirPath string) *ConfigManager {
-	defaultEditor := os.Getenv("EDITOR")
-	if defaultEditor == "" {
-		defaultEditor = "vim"
-	}
+func NewConfigManager(fs afero.Fs, dirPath string, editor Editor) *ConfigManager {
 	return &ConfigManager{
 		af:       &afero.Afero{Fs: fs},
 		dirPath:  dirPath,
 		filePath: filepath.Join(dirPath, fmt.Sprintf("%s.%s", ConfigName, ConfigType)),
-		editor:   defaultEditor,
+		editor:   editor,
 	}
 }
 
@@ -54,6 +50,8 @@ func (c *ConfigManager) Load(ctx context.Context) (*Config, error) {
 	}
 	cfg.AppName = AppName
 	cfg.Version = Version
+
+	c.editor.SetEditor(cfg.Editor)
 
 	log.Println("Configured.")
 
@@ -92,7 +90,7 @@ func (c *ConfigManager) initIfNotExists(ctx context.Context) error {
 	// set default value
 	cfg.AccessToken = ""
 	cfg.TeamName = ""
-	cfg.Editor = c.editor
+	cfg.Editor = os.Getenv("EDITOR")
 	cfg.SelectCmd = "peco"
 
 	t, err := template.New(fmt.Sprintf("%s.%s", ConfigName, ConfigType)).Parse(string(configTmpl))
@@ -108,7 +106,7 @@ func (c *ConfigManager) initIfNotExists(ctx context.Context) error {
 }
 
 func (c *ConfigManager) Edit(ctx context.Context) error {
-	if err := execEditor(c.editor, c.filePath); err != nil {
+	if err := c.editor.Exec(ctx, c.filePath); err != nil {
 		return fail.Wrap(err)
 	}
 	return nil
