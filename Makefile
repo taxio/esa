@@ -1,4 +1,4 @@
-BIN := esa
+BIN := ./bin/esa
 
 .PHONY: all
 all: clean build
