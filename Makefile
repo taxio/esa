@@ -7,6 +7,10 @@ all: clean build
 build:
 	go build -o $(BIN) .
 
+.PHONY: install
+install:
+	go install .
+
 .PHONY: clean
 clean:
 	rm -rf $(BIN)
