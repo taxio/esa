@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path"
 	"path/filepath"
 
 	"github.com/spf13/afero"
@@ -78,8 +77,37 @@ func (s *PostService) EditPost(ctx context.Context, postId int) error {
 	return nil
 }
 
-func (s *PostService) EditPostFromCache(postId int) error {
-	panic("Not implemented")
+func (s *PostService) EditPostFromCache(ctx context.Context, postId int) error {
+	cachePath := s.postCachePath(postId)
+
+	// open cache file by editor
+	if err := s.editor.Exec(ctx, cachePath.Body); err != nil {
+		return fail.Wrap(err)
+	}
+
+	// save post to esa.io
+	if err := s.updatePost(ctx, cachePath); err != nil {
+		return fail.Wrap(err)
+	}
+
+	// remove cache file
+	if err := s.af.RemoveAll(cachePath.BaseDir); err != nil {
+		return fail.Wrap(err)
+	}
+	return nil
+}
+
+func (s *PostService) DeletePostCache(ctx context.Context, postId int) error {
+	cachePath := s.postCachePath(postId)
+	if err := s.af.RemoveAll(cachePath.BaseDir); err != nil {
+		return fail.Wrap(err)
+	}
+	return nil
+}
+
+func (s *PostService) CacheDirPath(ctx context.Context, postId int) string {
+	cachePath := s.postCachePath(postId)
+	return cachePath.BaseDir
 }
 
 func (s *PostService) savePostTemporary(ctx context.Context, post *Post) (*postCachePath, error) {
@@ -140,6 +168,6 @@ func (s *PostService) updatePost(ctx context.Context, cachePath *postCachePath) 
 	return nil
 }
 
-func (s *PostService) postCachePath(postId int) string {
-	return path.Join(s.cacheBaseDir, "posts", fmt.Sprintf("%d", postId))
+func (s *PostService) postCachePath(postId int) *postCachePath {
+	return newPostCachePath(s.cacheBaseDir, postId)
 }
