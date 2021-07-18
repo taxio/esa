@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
+	"os"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -46,9 +49,25 @@ func NewEditSubCmd() *cobra.Command {
 			err = postSrv.EditPost(ctx, postId)
 			if err != nil {
 				if errors.Is(err, ErrPostCacheAlreadyExists) {
-					err = postSrv.EditPostFromCache(postId)
-					if err != nil {
-						return fail.Wrap(err)
+					scanner := bufio.NewScanner(os.Stdin)
+					fmt.Printf("The file being edited exists. %s\n", postSrv.CacheDirPath(ctx, postId))
+					fmt.Printf("Do you want to edit thid file? (y/n):")
+					scanner.Scan()
+					ans := scanner.Text()
+					if ans == "y" {
+						err = postSrv.EditPostFromCache(ctx, postId)
+						if err != nil {
+							return fail.Wrap(err)
+						}
+					} else if ans == "n" {
+						if err := postSrv.DeletePostCache(ctx, postId); err != nil {
+							return fail.Wrap(err)
+						}
+						if err := postSrv.EditPost(ctx, postId); err != nil {
+							return fail.Wrap(err)
+						}
+					} else {
+						return fail.New("please input y or n.")
 					}
 				} else {
 					return fail.Wrap(err)
