@@ -11,43 +11,30 @@ import (
 	"github.com/srvc/fail/v4"
 )
 
-func NewEditSubCmd() *cobra.Command {
+func NewEditLatestSubCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "edit",
-		Short: "edit post",
+		Use:   "latest",
+		Short: "edit latest post",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			// Validation
-			if len(args) > 1 {
-				return fail.New("Invalid arguments")
-			}
-
 			fs := afero.NewOsFs()
 			diApp, err := NewDiApp(ctx, fs)
 			if err != nil {
 				return fail.Wrap(err)
 			}
-			postSrv := diApp.PostService
+			client := diApp.Client
 
-			// Get Post ID
-			var postId int
-			if len(args) == 0 {
-				// Search for post incrementally.
-				pId, err := searchPostId()
-				if err != nil {
-					return fail.Wrap(err)
-				}
-				postId = pId
-			} else {
-				pId, err := ParsePostIdFromArg(args[0])
-				if err != nil {
-					return fail.Wrap(err)
-				}
-				postId = pId
-			}
-
-			err = postSrv.EditPost(ctx, postId)
+			posts, err := client.GetPosts(cmd.Context(), 1, Updated)
 			if err != nil {
+				return fail.Wrap(err)
+			}
+			if len(posts) == 0 {
+				return fail.New("no posts")
+			}
+			postId := posts[0].Number
+
+			postSrv := diApp.PostService
+			if err := postSrv.EditPost(ctx, postId); err != nil {
 				if errors.Is(err, ErrPostCacheAlreadyExists) {
 					scanner := bufio.NewScanner(os.Stdin)
 					fmt.Printf("The file being edited exists. %s\n", postSrv.CacheDirPath(ctx, postId))
@@ -73,20 +60,8 @@ func NewEditSubCmd() *cobra.Command {
 					return fail.Wrap(err)
 				}
 			}
-
 			return nil
 		},
 	}
-
-	subCmds := []*cobra.Command{
-		NewEditLatestSubCmd(),
-	}
-
-	cmd.AddCommand(subCmds...)
-
 	return cmd
-}
-
-func searchPostId() (int, error) {
-	return 0, fail.New("Unimplemented")
 }
