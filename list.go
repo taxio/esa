@@ -87,7 +87,7 @@ func NewListSubCmd() *cobra.Command {
 			}
 
 			for _, post := range posts {
-				fmt.Printf("%s: %s\n", post.FullName, post.Url)
+				fmt.Printf("%d: %s\n", post.Number, post.FullName)
 			}
 			return nil
 		},
