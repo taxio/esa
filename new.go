@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/srvc/fail/v4"
@@ -24,8 +25,13 @@ func NewNewSubCmd() *cobra.Command {
 				return fail.Wrap(err)
 			}
 			client := diApp.Client
+			postSrv := diApp.PostService
 
 			template, err := cmd.Flags().GetString("template")
+			if err != nil {
+				return fail.Wrap(err)
+			}
+			noEdit, err := cmd.Flags().GetBool("no-edit")
 			if err != nil {
 				return fail.Wrap(err)
 			}
@@ -41,8 +47,14 @@ func NewNewSubCmd() *cobra.Command {
 					return fail.Wrap(err)
 				}
 
-				fmt.Printf("Created: %s\n", post.FullName)
-				fmt.Println(post.Url)
+				if noEdit {
+					fmt.Printf("Created: %s\n", post.FullName)
+					fmt.Println(post.Url)
+				} else {
+					if err := postSrv.EditPost(ctx, post.Number); err != nil {
+						return fail.Wrap(err)
+					}
+				}
 			} else {
 				panic("Unimplemented")
 			}
@@ -52,6 +64,7 @@ func NewNewSubCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("template", "t", "", "the id of template post")
+	cmd.Flags().Bool("no-edit", false, "run edit mode after created")
 
 	return cmd
 }
