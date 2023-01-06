@@ -10,9 +10,9 @@ import (
 
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     AppName,
+		Use:     appName,
 		Short:   "A cli tool for esa",
-		Version: Version,
+		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

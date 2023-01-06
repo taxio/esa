@@ -9,6 +9,8 @@ import (
 	"github.com/srvc/fail/v4"
 )
 
+const appName = "esa"
+
 type DiApp struct {
 	Config        *Config
 	Client        *Client
@@ -58,17 +60,17 @@ func getConfigDirPath() (string, error) {
 	// ESA_CONFIG_DIR
 	cfgDirPath := os.Getenv("ESA_CONFIG_DIR")
 	if cfgDirPath != "" {
-		return path.Join(cfgDirPath, AppName), nil
+		return path.Join(cfgDirPath, appName), nil
 	}
 
 	// XDG
 	cfgDirPath = os.Getenv("XDG_CONFIG_HOME")
 	if cfgDirPath != "" {
-		return path.Join(cfgDirPath, AppName), nil
+		return path.Join(cfgDirPath, appName), nil
 	}
 	cfgDirPath = os.Getenv("HOME")
 	if cfgDirPath != "" {
-		return path.Join(cfgDirPath, ".config", AppName), nil
+		return path.Join(cfgDirPath, ".config", appName), nil
 	}
 
 	// Default
@@ -77,24 +79,24 @@ func getConfigDirPath() (string, error) {
 		return "", fail.Wrap(err)
 	}
 
-	return path.Join(cfgDirPath, AppName), nil
+	return path.Join(cfgDirPath, appName), nil
 }
 
 func getCacheDirPath() (string, error) {
 	// ESA_CONFIG_DIR
 	cacheDirPath := os.Getenv("ESA_CACHE_DIR")
 	if cacheDirPath != "" {
-		return path.Join(cacheDirPath, AppName), nil
+		return path.Join(cacheDirPath, appName), nil
 	}
 
 	// XDG
 	cacheDirPath = os.Getenv("XDG_CACHE_HOME")
 	if cacheDirPath != "" {
-		return path.Join(cacheDirPath, AppName), nil
+		return path.Join(cacheDirPath, appName), nil
 	}
 	cacheDirPath = os.Getenv("HOME")
 	if cacheDirPath != "" {
-		return path.Join(cacheDirPath, ".cache", AppName), nil
+		return path.Join(cacheDirPath, ".cache", appName), nil
 	}
 
 	// Default
@@ -103,5 +105,5 @@ func getCacheDirPath() (string, error) {
 		return "", fail.Wrap(err)
 	}
 
-	return path.Join(cacheDirPath, AppName), nil
+	return path.Join(cacheDirPath, appName), nil
 }

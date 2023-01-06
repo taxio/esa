@@ -48,8 +48,8 @@ func (c *ConfigManager) Load(ctx context.Context) (*Config, error) {
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fail.Wrap(err)
 	}
-	cfg.AppName = AppName
-	cfg.Version = Version
+	cfg.AppName = appName
+	cfg.Version = version
 
 	c.editor.SetEditor(cfg.Editor)
 

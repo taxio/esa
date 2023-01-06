@@ -1,6 +1,3 @@
 package main
 
-const (
-	AppName = "esa"
-	Version = "0.3.0"
-)
+const version = "0.3.0"
