@@ -97,5 +97,51 @@ func NewListSubCmd() *cobra.Command {
 	cmd.Flags().String("sort", "updated", "Sort key [updated:created:number:stars:watches:comments:best_match]")
 	cmd.Flags().Bool("only-templates", false, "Show only template posts")
 
+	cmd.AddCommand(
+		newListTemplatesSubCmd(),
+	)
+
+	return cmd
+}
+
+func newListTemplatesSubCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "templates",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+			fs := afero.NewOsFs()
+			diApp, err := NewDiApp(ctx, fs)
+			if err != nil {
+				return fail.Wrap(err)
+			}
+			client := diApp.Client
+
+			count, err := cmd.Flags().GetInt("count")
+			if err != nil {
+				return fail.Wrap(err)
+			}
+			sortKeyName, err := cmd.Flags().GetString("sort")
+			if err != nil {
+				return fail.Wrap(err)
+			}
+			sortKey, err := sortKeyFromString(sortKeyName)
+			if err != nil {
+				return fail.Wrap(err)
+			}
+
+			var posts []*Post
+			posts, err = client.GetTemplatePosts(cmd.Context(), count, sortKey)
+			if err != nil {
+				return fail.Wrap(err)
+			}
+
+			for _, post := range posts {
+				fmt.Printf("%d: %s\n", post.Number, post.FullName)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().IntP("count", "c", 20, "Only print the number of posts")
+	cmd.Flags().String("sort", "updated", "Sort key [updated:created:number:stars:watches:comments:best_match]")
 	return cmd
 }
